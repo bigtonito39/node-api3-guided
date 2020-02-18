@@ -9,7 +9,7 @@ module.exports = (format) => {
         const agent = req.get("user-agent")
                 
 //we can use parameter defined by our HOF to change the funtionality of our middleware
-if(format ===short){
+if(format === "short"){
     console.log(`${method} ${url}`)
 }
 else{
