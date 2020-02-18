@@ -28,24 +28,25 @@ router.get("/", (req, res) => {
 })
 
 // This handles the route /api/hubs/:id
-router.get("/:id", (req, res) => {
-	hubs.findById(req.params.id)
-		.then((hub) => {
-			// make sure the hub actually exists before we try to return it
-			if (hub) {
-				res.status(200).json(hub)
-			} else {
-				res.status(404).json({
-					message: "Hub not found",
-				})
-			}
-		})
-		.catch((error) => {
-			console.log(error)
-			res.status(500).json({
-				message: "Error retrieving the hub",
-			})
-		})
+router.get("/:id", validateHubId(), (req, res) => {
+	resizeTo.status(200).json(req.hub) //comes from 
+	// hubs.findById(req.params.id)
+	// 	.then((hub) => {
+	// 		// make sure the hub actually exists before we try to return it
+	// 		if (hub) {
+	// 			res.status(200).json(hub)
+	// 		} else {
+	// 			res.status(404).json({
+	// 				message: "Hub not found",
+	// 			})
+	// 		}
+	// 	})
+	// 	.catch((error) => {
+	// 		console.log(error)
+	// 		res.status(500).json({
+	// 			message: "Error retrieving the hub",
+	// 		})
+	// 	})
 })
 
 // This handles POST /api/hubs
@@ -69,7 +70,7 @@ router.post("/", (req, res) => {
 })
 
 // This handles PUT /api/hubs/:id
-router.put("/:id", (req, res) => {
+router.put("/:id",validateHubId(), (req, res) => {
 	if (!req.body.name) {
 		return res.status(400).json({
 			message: "Missing hub name",
@@ -95,7 +96,7 @@ router.put("/:id", (req, res) => {
 })
 
 // This handles DELETE /api/hubs/:id
-router.delete("/:id", (req, res) => {
+router.delete("/:id", validateHubId(),(req, res) => {
 	hubs.remove(req.params.id)
 		.then((count) => {
 			if (count > 0) {
@@ -173,5 +174,30 @@ router.post("/:id/messages", (req, res) => {
 			})
 		})
 })
+
+//A middleware funtion that ensures a hub ID exist before trying to use it
+function validateHubId(){
+	return (req, res, next) => {
+		hubs.findById(req.params.id)
+		.then((hub) => {
+			// make sure the hub actually exists before we try to return it
+			if (hub) {
+				//attach a value to our request, so its available, in other middleware funtions.
+				req.hub = hub
+				next() //move to the route handler, or next piece of middleware
+			} else {
+				res.status(404).json({
+					message: "Hub not found",
+				})
+			}
+		})
+		.catch((error) => {
+			console.log(error)
+			res.status(500).json({
+				message: "Error retrieving the hub",
+			})
+		})
+	}
+}
 
 module.exports = router
